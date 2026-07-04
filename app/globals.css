@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* HANDOFF パレット（入国ビザ） */
+  --color-night: #0f1a2b;
+  --color-line: #f2efe6;
+  --color-pitch: #19c37d;
+  --color-stamp: #d64545;
+  --color-ink: #1b2733;
+
+  /* タイポ */
+  --font-heading: var(--font-zen-maru), "Zen Maru Gothic", sans-serif;
+  --font-body: var(--font-noto-sans), "Noto Sans JP", sans-serif;
+}
+
+body {
+  background: var(--color-night);
+  color: var(--color-line);
+  font-family: var(--font-body);
+}
+
+/* 英字ラベル（VISA等）: letter-spacing広めの等幅風 */
+.label-en {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+/* 結果表示時の唯一のアニメーション: スタンプがドンと押される */
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(2) rotate(-20deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-8deg);
+  }
+}
+
+.stamp-animate {
+  transform: rotate(-8deg);
+  animation: stamp-in 0.5s cubic-bezier(0.22, 1.1, 0.36, 1) 0.15s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-animate {
+    animation: none;
+    opacity: 1;
+    transform: rotate(-8deg);
+  }
+}
