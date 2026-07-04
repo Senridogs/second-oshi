@@ -36,7 +36,8 @@ export default function Quiz() {
     return (
       <ResultScreen
         first={ranked[0].team}
-        runners={[ranked[1].team, ranked[2].team]}
+        // チーム数が3未満でもクラッシュしないよう存在する分だけ渡す
+        runners={ranked.slice(1, 3).map((r) => r.team)}
         onReset={reset}
       />
     );

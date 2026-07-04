@@ -69,7 +69,7 @@ export default function ResultScreen({ first, runners, onReset }: Props) {
       <section>
         <p className="label-en text-[10px] text-line/50">Runners-up</p>
         <p className="mt-1 text-xs text-line/60">僅差だった移住先候補</p>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {runners.map((team, i) => (
             <span
               key={team.id}
@@ -96,6 +96,10 @@ export default function ResultScreen({ first, runners, onReset }: Props) {
       >
         もう一度診断する
       </button>
+
+      <footer className="pb-2 text-center">
+        <p className="text-[10px] text-line/30">国旗画像: Twemoji (CC-BY 4.0)</p>
+      </footer>
     </div>
   );
 }

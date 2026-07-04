@@ -23,5 +23,6 @@ export const flagColors: Record<string, [string, string]> = {
 const FALLBACK: [string, string] = ["#0F1A2B", "#19C37D"];
 
 export function getFlagColors(teamId: string): [string, string] {
-  return flagColors[teamId] ?? FALLBACK;
+  // 素のオブジェクトルックアップだと "constructor" 等で prototype 継承値を拾うため hasOwn でガード
+  return Object.hasOwn(flagColors, teamId) ? flagColors[teamId] : FALLBACK;
 }

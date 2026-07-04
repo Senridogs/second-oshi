@@ -1,4 +1,5 @@
 import type { Team } from "./types";
+import { getSiteUrl } from "./siteUrl";
 
 /** シェア本文（仕様v3 固定文言） */
 export function shareText(team: Team): string {
@@ -12,14 +13,10 @@ export function resultPath(teamId: string): string {
 
 /**
  * 結果パーマリンクの絶対URL。
- * NEXT_PUBLIC_SITE_URL 未設定時はブラウザの origin にフォールバック。
- * （サーバー側で origin も無い場合は相対パスを返す）
+ * ベースURLの優先順位は lib/siteUrl.ts（metadataBase と共通）に従う。
  */
 export function resultUrl(teamId: string): string {
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (typeof window !== "undefined" ? window.location.origin : "");
-  return `${base.replace(/\/$/, "")}${resultPath(teamId)}`;
+  return `${getSiteUrl().replace(/\/$/, "")}${resultPath(teamId)}`;
 }
 
 /** X (Twitter) intent URL */

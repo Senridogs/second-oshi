@@ -3,19 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import VisaCard from "@/components/VisaCard";
 import { formatIssueDate } from "@/lib/date";
-import { findTeam, teams } from "@/lib/teams";
+import { findTeam } from "@/lib/teams";
 import { shareText } from "@/lib/share";
 
 interface Props {
   params: Promise<{ teamId: string }>;
 }
 
-/** 発行日=閲覧時の診断日として毎リクエスト描画する */
+/** 発行日=閲覧時の診断日として毎リクエスト描画する（動的レンダリングに一本化） */
 export const dynamic = "force-dynamic";
-
-export function generateStaticParams() {
-  return teams.map((team) => ({ teamId: team.id }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { teamId } = await params;
@@ -81,6 +77,7 @@ export default async function ResultPermalink({ params }: Props) {
 
       <footer className="mt-auto pb-2 text-center">
         <p className="label-en text-[10px] text-line/40">#セカンド推し診断</p>
+        <p className="mt-1 text-[10px] text-line/30">国旗画像: Twemoji (CC-BY 4.0)</p>
       </footer>
     </div>
   );

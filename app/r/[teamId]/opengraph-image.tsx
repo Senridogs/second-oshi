@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { notFound } from "next/navigation";
 import { findTeam } from "@/lib/teams";
 import { getFlagColors } from "@/lib/flagColors";
 import { flagImg } from "@/lib/flagImg";
@@ -9,21 +10,26 @@ export const contentType = "image/png";
 
 /**
  * Google Fonts の text= サブセットAPIから Noto Sans JP (truetype) を取得。
- * 失敗時は undefined を返し、フォント無しで描画にフォールバック。
+ * 失敗時は throw してエラー応答にする（satoriのデフォルトフォントは日本語グリフ
+ * 非対応のため、文字欠落画像がCDNにキャッシュされるより500の方が安全）。
  */
-async function loadJapaneseFont(text: string): Promise<ArrayBuffer | undefined> {
-  try {
-    const chars = Array.from(new Set(Array.from(text))).join("");
-    const cssUrl = `https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&text=${encodeURIComponent(chars)}`;
-    const css = await (await fetch(cssUrl)).text();
-    const match = css.match(/src: url\((.+?)\) format\('(?:truetype|opentype)'\)/);
-    if (!match) return undefined;
-    const res = await fetch(match[1]);
-    if (!res.ok) return undefined;
-    return await res.arrayBuffer();
-  } catch {
-    return undefined;
+async function loadJapaneseFont(text: string): Promise<ArrayBuffer> {
+  const chars = Array.from(new Set(Array.from(text))).join("");
+  const cssUrl = `https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&text=${encodeURIComponent(chars)}`;
+  const cssRes = await fetch(cssUrl);
+  if (!cssRes.ok) {
+    throw new Error(`Failed to fetch font CSS: ${cssRes.status}`);
   }
+  const css = await cssRes.text();
+  const match = css.match(/src: url\((.+?)\) format\('(?:truetype|opentype)'\)/);
+  if (!match) {
+    throw new Error("Font URL not found in Google Fonts CSS");
+  }
+  const res = await fetch(match[1]);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch font file: ${res.status}`);
+  }
+  return await res.arrayBuffer();
 }
 
 export default async function Image({
@@ -33,10 +39,14 @@ export default async function Image({
 }) {
   const { teamId } = await params;
   const team = findTeam(teamId);
-  const name = team?.name ?? "セカンド推し診断";
-  const flag = team?.flag ?? "⚽";
-  const reason = team?.reason ?? "次に推す国、見つけよう";
-  const [c1, c2] = getFlagColors(teamId);
+  // 未知のteamIdはフォールバック画像を作らず404（外部フォントfetchの負荷増幅を防ぐ）
+  if (!team) notFound();
+  const name = team.name;
+  const flag = team.flag;
+  const reason = team.reason;
+  const [c1, c2] = getFlagColors(team.id);
+  // prototype 継承値（"constructor" 等）を拾わないよう hasOwn でガード
+  const flagSrc = Object.hasOwn(flagImg, team.id) ? flagImg[team.id] : undefined;
 
   const textForFont = `SECOND OSHI VISA APPROVED あなたの移住先は 入国許可証 #セカンド推し診断 ${name}${reason}`;
   const fontData = await loadJapaneseFont(textForFont);
@@ -50,7 +60,7 @@ export default async function Image({
           display: "flex",
           padding: 40,
           background: `linear-gradient(135deg, ${c1} 0%, ${c1} 42%, ${c2} 58%, ${c2} 100%)`,
-          fontFamily: fontData ? "NotoSansJP" : undefined,
+          fontFamily: "NotoSansJP",
         }}
       >
         <div
@@ -81,9 +91,9 @@ export default async function Image({
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
-            {flagImg[teamId] ? (
+            {flagSrc ? (
               // ローカル同梱のtwemoji由来PNG（CDN非依存で確実に描画）
-              <img src={flagImg[teamId]} width={140} height={140} alt="" />
+              <img src={flagSrc} width={140} height={140} alt="" />
             ) : (
               // 新規追加国でSVG未生成の場合はtwemoji絵文字描画にフォールバック
               <span style={{ fontSize: 130 }}>{flag}</span>
@@ -139,9 +149,7 @@ export default async function Image({
     ),
     {
       ...size,
-      fonts: fontData
-        ? [{ name: "NotoSansJP", data: fontData, weight: 700, style: "normal" }]
-        : undefined,
+      fonts: [{ name: "NotoSansJP", data: fontData, weight: 700, style: "normal" }],
     }
   );
 }

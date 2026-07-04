@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Zen_Maru_Gothic, Noto_Sans_JP } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { getSiteUrl } from "@/lib/siteUrl";
 import "./globals.css";
 
 const zenMaru = Zen_Maru_Gothic({
@@ -19,10 +20,8 @@ const notoSans = Noto_Sans_JP({
   variable: "--font-noto-sans",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(getSiteUrl()),
   title: "セカンド推し診断 〜次に推す国、見つけよう〜",
   description:
     "10問で「第二の祖国」への入国ビザを発行。日本ロスのあなたに、大会最終日まで観る理由を。サッカー知識ゼロでOK。",
