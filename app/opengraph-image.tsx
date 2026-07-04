@@ -1,39 +1,24 @@
 import { ImageResponse } from "next/og";
-import { notFound } from "next/navigation";
-import { findTeam, teams } from "@/lib/teams";
-import { getFlagColors } from "@/lib/flagColors";
-import { flagImg } from "@/lib/flagImg";
 import { loadJapaneseFont } from "@/lib/ogFont";
 
 /** 静的エクスポート: ビルド時に画像を生成する */
 export const dynamic = "force-static";
 
-export const alt = "セカンド推し診断 結果カード";
+export const alt = "セカンド推し診断 〜次に推す国、見つけよう〜";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-/** 静的エクスポート: 全15カ国ぶんのOGP画像をビルド時に生成する */
-export function generateStaticParams() {
-  return teams.map((team) => ({ teamId: team.id }));
-}
+/**
+ * トップページ（/）用のデフォルトOGP画像。
+ * シェアの正は /r/[teamId] だが、トップURLが共有された時に
+ * 画像なしにならないための保険。/r/ のビザ意匠・パレットに準拠。
+ */
+export default async function Image() {
+  const title = "セカンド推し診断";
+  const subtitle = "次に推す国、見つけよう";
+  const lead = "10問で「第二の祖国」への入国ビザを発行";
 
-export default async function Image({
-  params,
-}: {
-  params: Promise<{ teamId: string }>;
-}) {
-  const { teamId } = await params;
-  const team = findTeam(teamId);
-  // 未知のteamIdはフォールバック画像を作らず404（外部フォントfetchの負荷増幅を防ぐ）
-  if (!team) notFound();
-  const name = team.name;
-  const flag = team.flag;
-  const reason = team.reason;
-  const [c1, c2] = getFlagColors(team.id);
-  // prototype 継承値（"constructor" 等）を拾わないよう hasOwn でガード
-  const flagSrc = Object.hasOwn(flagImg, team.id) ? flagImg[team.id] : undefined;
-
-  const textForFont = `SECOND OSHI VISA APPROVED あなたの移住先は 入国許可証 #セカンド推し診断 ${name}${reason}`;
+  const textForFont = `SECOND OSHI VISA APPROVED 入国許可証 入国許可 #セカンド推し診断 ${title}${subtitle}${lead}`;
   const fontData = await loadJapaneseFont(textForFont);
 
   return new ImageResponse(
@@ -44,7 +29,7 @@ export default async function Image({
           height: "100%",
           display: "flex",
           padding: 40,
-          background: `linear-gradient(135deg, ${c1} 0%, ${c1} 42%, ${c2} 58%, ${c2} 100%)`,
+          background: "linear-gradient(135deg, #19C37D 0%, #19C37D 42%, #0F1A2B 58%, #0F1A2B 100%)",
           fontFamily: "NotoSansJP",
         }}
       >
@@ -75,32 +60,22 @@ export default async function Image({
             </span>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
-            {flagSrc ? (
-              // ローカル同梱のtwemoji由来PNG（CDN非依存で確実に描画）
-              <img src={flagSrc} width={140} height={140} alt="" />
-            ) : (
-              // 新規追加国でSVG未生成の場合はtwemoji絵文字描画にフォールバック
-              <span style={{ fontSize: 130 }}>{flag}</span>
-            )}
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 28, opacity: 0.85 }}>あなたの移住先は</span>
-              <span style={{ fontSize: 78, fontWeight: 700, lineHeight: 1.15 }}>
-                {name}
-              </span>
-            </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontSize: 32, opacity: 0.85 }}>{subtitle}</span>
+            <span
+              style={{
+                fontSize: 96,
+                fontWeight: 700,
+                lineHeight: 1.15,
+                color: "#19C37D",
+              }}
+            >
+              {title}
+            </span>
           </div>
 
-          <div
-            style={{
-              display: "block",
-              lineClamp: 2,
-              fontSize: 32,
-              lineHeight: 1.55,
-              opacity: 0.95,
-            }}
-          >
-            {reason}
+          <div style={{ display: "flex", fontSize: 34, lineHeight: 1.55, opacity: 0.95 }}>
+            {lead}
           </div>
 
           <div

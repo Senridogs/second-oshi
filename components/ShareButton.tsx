@@ -1,6 +1,6 @@
 "use client";
 
-import { track } from "@vercel/analytics";
+import { trackShare } from "@/lib/analytics";
 import { xIntentUrl } from "@/lib/share";
 import type { Team } from "@/lib/types";
 
@@ -8,10 +8,10 @@ interface Props {
   team: Team;
 }
 
-/** Xシェアボタン。計測はこの click イベントのみ */
+/** Xシェアボタン。計測はこの click イベントのみ（GA4 share イベント） */
 export default function ShareButton({ team }: Props) {
   const handleClick = () => {
-    track("share", { team: team.id });
+    trackShare(team.id);
     window.open(xIntentUrl(team), "_blank", "noopener,noreferrer");
   };
 

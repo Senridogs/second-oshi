@@ -4,6 +4,9 @@
  * 2. VERCEL_URL（Vercelデプロイ時に自動注入。サーバーのみ）
  * 3. window.location.origin（クライアントのみ）
  * 4. localhost（ローカル開発フォールバック）
+ *
+ * 注意: 静的エクスポート（output: "export"）では NEXT_PUBLIC_SITE_URL は
+ * ビルド時に成果物へ焼き込まれる。本番ビルドでは必ず設定すること（README参照）。
  */
 export function getSiteUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) {

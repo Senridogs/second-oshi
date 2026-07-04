@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import VisaCard from "@/components/VisaCard";
-import { formatIssueDate } from "@/lib/date";
-import { findTeam } from "@/lib/teams";
+import ResultVisaCard from "@/components/ResultVisaCard";
+import { findTeam, teams } from "@/lib/teams";
 import { shareText } from "@/lib/share";
 
 interface Props {
   params: Promise<{ teamId: string }>;
 }
 
-/** 発行日=閲覧時の診断日として毎リクエスト描画する（動的レンダリングに一本化） */
-export const dynamic = "force-dynamic";
+/**
+ * 静的エクスポート: 全15カ国ぶんをビルド時に事前生成する。
+ * 発行日（=閲覧日）はクライアント描画（ResultVisaCard）で維持する。
+ */
+export function generateStaticParams() {
+  return teams.map((team) => ({ teamId: team.id }));
+}
+
+/** generateStaticParams 外のteamIdは生成しない（404はS3/CloudFront側に委ねる） */
+export const dynamicParams = false;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { teamId } = await params;
@@ -58,8 +65,8 @@ export default async function ResultPermalink({ params }: Props) {
       {/* シェア文の再現（誰の結果かの文脈） */}
       <p className="text-sm leading-relaxed text-line/80">{shareText(team)}</p>
 
-      {/* ビザカード */}
-      <VisaCard team={team} issuedDate={formatIssueDate()} animateStamp />
+      {/* ビザカード（発行日はクライアントで閲覧日を描画） */}
+      <ResultVisaCard team={team} />
 
       {/* KPI: 開いた人が10秒で診断を始められる目立つCTA */}
       <div className="flex flex-col gap-2">

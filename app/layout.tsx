@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Zen_Maru_Gothic, Noto_Sans_JP } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { GA_ID } from "@/lib/analytics";
 import "./globals.css";
 
 const zenMaru = Zen_Maru_Gothic({
@@ -36,7 +37,23 @@ export default function RootLayout({
     <html lang="ja" className={`${zenMaru.variable} ${notoSans.variable}`}>
       <body className="min-h-dvh antialiased">
         {children}
-        <Analytics />
+        {/* GA4: NEXT_PUBLIC_GA_ID 設定時のみ読み込む（未設定なら何も出力しない） */}
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );
